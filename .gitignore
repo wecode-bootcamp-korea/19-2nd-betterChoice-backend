@@ -299,7 +299,8 @@ fabric.properties
 my_settings.py
 *.csv
 .idea/*
-orders/management/*
-products/management/*
+reviews/management/*
+hotels/management/*
 users/management/*
+reservations/management/*
 db_uploader.py
