@@ -2,9 +2,9 @@ from django.db import models
 
 class User(models.Model):
     email        = models.CharField(max_length = 45)
-    password     = models.CharField(max_length = 500)
+    password     = models.CharField(max_length = 500, null = True)
     nickname     = models.CharField(max_length = 45)
-    phone_number = models.CharField(max_length = 45)
+    phone_number = models.CharField(max_length = 45, null = True)
     is_social    = models.BooleanField()
     hotel        = models.ManyToManyField('hotels.Hotel', through = 'UserLike')
     coupon       = models.ManyToManyField('Coupon', through = 'UserCoupon')
@@ -33,3 +33,10 @@ class UserLike(models.Model):
 
     class Meta:
         db_table = 'user_likes'
+
+class PhoneCheck(models.Model):
+    phone_number = models.CharField(max_length=45)
+    auth_number  = models.IntegerField()
+
+    class Meta:
+        db_table = 'phone_checks'
