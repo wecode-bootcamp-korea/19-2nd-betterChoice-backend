@@ -277,3 +277,37 @@ class SmsCheckTest(TestCase):
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {'MESSAGE':'INVALID_AUTH_NUMBER'})
+
+class KakaoTestCase(TestCase):
+    @patch("users.views.requests")
+    def test_user_kakao_post_success(self, mocked_requests):
+
+        class MockedResponse:
+            def json(self):
+                return {
+                  "id": 123456,
+                  "kakao_account": {
+                    "profile": {
+                      "nickname": "test"
+                    },
+                    "email": "test1@kakao.com"
+                  }
+                }
+        mocked_requests.get = MagicMock(return_value=MockedResponse())
+
+        client = Client()
+        header = {'HTTP_Authorization': "access_token"}
+        response = client.post("/users/kakao-signin", **header, content_type="application/json")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "TOKEN": response.json()['TOKEN'], "NICKNAME": "test"
+            }
+        )
+
+    def test_user_kakao_post_keyerror(self):
+        client = Client()
+        headers = {'HTTP_Authorization': "access_token"}
+        response = client.post("/users/kakao-signin", **headers, content_type="application/json")
+        self.assertEqual(response.status_code,401)
