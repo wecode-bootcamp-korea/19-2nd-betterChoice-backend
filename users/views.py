@@ -2,6 +2,7 @@ import bcrypt
 import jwt
 import json
 import my_settings
+import requests
 
 from django.views          import View
 from django.http           import JsonResponse
@@ -113,3 +114,32 @@ class SmsCheckView(View):
             return JsonResponse({'MESSAGE':'INVALID_AUTH_NUMBER'}, status=400)
         
         return JsonResponse({'MESSAGE':'SUCCESS'}, status=200)
+
+class kakaoView(View):
+    def post(self, request):
+        try:
+            access_token = request.headers.get('Authorization', None)
+            url          = 'https://kapi.kakao.com/v2/user/me'
+            headers      = {'Authorization': f'Bearer {access_token}',
+                            'Content-type': 'application/x-www-form-urlencoded;charset=utf-8'
+            }
+
+            response      = requests.get(url,headers=headers)
+            data          = response.json()
+            kakao_user_id = data['id']
+            email         = data['kakao_account']['email']
+            nickname      = data['kakao_account']['profile']['nickname']
+
+            if not User.objects.filter(kakao_user_id=kakao_user_id).exists():
+                User.objects.create(
+                    kakao_user_id = kakao_user_id,
+                    email         = email,
+                    nickname      = nickname,
+                    is_social     = True
+                )
+
+            token = jwt.encode({'id': User.objects.get(kakao_user_id=kakao_user_id).id}, my_settings.SECRET['secret'], algorithm=my_settings.ALGORITHM)
+            return JsonResponse({'TOKEN': token, 'NICKNAME': nickname},status=200)
+
+        except KeyError:
+            return JsonResponse({'MESSAGE': 'KEY_ERROR'},status=401)
