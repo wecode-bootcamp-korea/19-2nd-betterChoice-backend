@@ -46,8 +46,16 @@ class Room(models.Model):
     original_price  = models.DecimalField(max_digits = 10, decimal_places = 2)
     discount_rate   = models.DecimalField(max_digits = 4, decimal_places = 2)
     occupancy       = models.IntegerField()
-    total_quantity  = models.IntegerField()
     hotel           = models.ForeignKey('Hotel', on_delete = models.CASCADE)
 
     class Meta:
         db_table    = 'rooms'
+
+class ReservationCheck(models.Model):
+    date         = models.DateTimeField()
+    quantity     = models.IntegerField()
+    remain       = models.IntegerField()
+    room         = models.ForeignKey('Room', on_delete = models.CASCADE)
+    
+    class Meta:
+        db_table = 'reservation_checks'
