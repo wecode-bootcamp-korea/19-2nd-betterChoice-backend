@@ -52,7 +52,7 @@ class Room(models.Model):
         db_table    = 'rooms'
 
 class ReservationCheck(models.Model):
-    date         = models.DateTimeField()
+    date         = models.DateField()
     quantity     = models.IntegerField()
     remain       = models.IntegerField()
     room         = models.ForeignKey('Room', on_delete = models.CASCADE)
