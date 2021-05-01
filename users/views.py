@@ -3,10 +3,10 @@ import jwt
 import json
 import my_settings
 
-from django.views     import View
-from django.http      import JsonResponse
+from django.views          import View
+from django.http           import JsonResponse
 
-from users.models     import User, UserCoupon, Coupon, UserLike, PhoneCheck
+from users.models          import User, UserCoupon, Coupon, UserLike, PhoneCheck
 
 class SignUpView(View):
     def post(self, request):
@@ -40,6 +40,39 @@ class SignUpView(View):
             )
 
             return JsonResponse({'MESSAGE':'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+        
+        except json.JSONDecodeError:
+            return JsonResponse({'MESSAGE': 'JSON_DECODE_ERROR'}, status=400)
+
+class SignInView(View):
+    def post(self, request):
+
+        try:
+            data     = json.loads(request.body)
+            email    = data['email']
+            password = data['password']
+
+            if not email:
+                return JsonResponse({'MESSAGE':'EMAIL_TYPE_ERROR'}, status=400)
+            
+            if not password:
+                return JsonResponse({'MESSAGE':'PASSWORD_TYPE_ERROR'}, status=400)
+
+            if not User.objects.filter(email=email).exists():
+                return JsonResponse({'MESSAGE':'INVALID_EMAIL'}, status=400)
+            
+            user             = User.objects.get(email=email)
+            encode_password  = user.password.encode('utf-8')
+            checked_password = bcrypt.checkpw(password.encode('utf-8'), encode_password)
+
+            if not checked_password:
+                return JsonResponse({'MESSAGE':'INVALID_PASSWORD'}, status=400)
+            
+            access_token = jwt.encode({'id':user.id}, my_settings.SECRET['secret'], algorithm=my_settings.ALGORITHM)
+            return JsonResponse({'MESSAGE':'SUCCESS', 'ACCESS_TOKEN':access_token}, status=200)
 
         except KeyError:
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
