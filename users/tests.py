@@ -127,7 +127,7 @@ class SignInTest(TestCase):
 
         response = client.post('/users/signin', json.dumps(user), content_type='application/json')
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(), {'MESSAGE':'SUCCESS', 'ACCESS_TOKEN':access_token})
+        self.assertEqual(response.json(), {'MESSAGE':'SUCCESS', 'ACCESS_TOKEN':access_token, 'NICKNAME':user_test.nickname})
     
     def test_EMAIL_TYPE_ERROR_signin(self):
         client = Client()
