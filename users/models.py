@@ -1,13 +1,14 @@
 from django.db import models
 
 class User(models.Model):
-    email        = models.CharField(max_length = 45)
-    password     = models.CharField(max_length = 500, null = True)
-    nickname     = models.CharField(max_length = 45)
-    phone_number = models.CharField(max_length = 45, null = True)
-    is_social    = models.BooleanField()
-    hotel        = models.ManyToManyField('hotels.Hotel', through = 'UserLike')
-    coupon       = models.ManyToManyField('Coupon', through = 'UserCoupon')
+    email           = models.CharField(max_length = 45)
+    password        = models.CharField(max_length = 500, null = True)
+    nickname        = models.CharField(max_length = 45)
+    phone_number    = models.CharField(max_length = 45, null = True)
+    is_social       = models.BooleanField()
+    kakao_user_id   = models.IntegerField(null = True)
+    hotel           = models.ManyToManyField('hotels.Hotel', through = 'UserLike')
+    coupon          = models.ManyToManyField('Coupon', through = 'UserCoupon')
 
     class Meta:
         db_table = 'users'
