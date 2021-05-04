@@ -7,6 +7,7 @@ from django.views          import View
 from django.http           import JsonResponse
 
 from users.models          import User, UserCoupon, Coupon, UserLike, PhoneCheck
+from users.utils           import auth_number, make_signature, send_sms
 
 class SignUpView(View):
     def post(self, request):
@@ -79,3 +80,36 @@ class SignInView(View):
         
         except json.JSONDecodeError:
             return JsonResponse({'MESSAGE': 'JSON_DECODE_ERROR'}, status=400)
+
+class SmsCheckView(View):
+    def post(self, request):
+        auth_num = auth_number()
+        
+        try:
+            data         = json.loads(request.body)
+            phone_number = data['phone_number']
+
+            if not my_settings.PHONE_CHECK.match(phone_number):
+                return JsonResponse({'MESSAGE':'INVALID_PHONE_NUMBER'}, status=400)
+
+            PhoneCheck.objects.update_or_create(phone_number=phone_number,defaults={'auth_number':auth_num})
+
+            send_sms(phone_number = phone_number, auth_number = auth_num)
+
+            return JsonResponse({'MESSAGE': 'SUCCESS'}, status=200)
+
+        except KeyError:
+            return JsonResponse({'MESSAGE': 'KEY_ERROR'}, status=400)
+            
+        except json.JSONDecodeError:
+            return JsonResponse({'MESSAGE': 'JSON_DECODE_ERROR'}, status=400)
+
+    def get(self, request):
+        auth_number  = request.GET.get('auth_number', None)
+        phone_number = request.GET.get('phone_number', None)
+        phone_check  = PhoneCheck.objects.filter(phone_number=phone_number, auth_number=auth_number).exists()
+
+        if not phone_check:
+            return JsonResponse({'MESSAGE':'INVALID_AUTH_NUMBER'}, status=400)
+        
+        return JsonResponse({'MESSAGE':'SUCCESS'}, status=200)

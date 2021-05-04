@@ -4,8 +4,9 @@ import jwt
 import my_settings
 
 from django.test           import TestCase, Client
+from unittest.mock         import patch, MagicMock
 
-from users.models          import User
+from users.models          import User, PhoneCheck
 
 class SingUpTest(TestCase):
     def setUp(self):
@@ -193,3 +194,86 @@ class SignInTest(TestCase):
         response = client.post('/users/signin', user)
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {'MESSAGE':'JSON_DECODE_ERROR'})
+
+class SmsCheckTest(TestCase):
+    def setUp(self):
+        PhoneCheck.objects.create(
+            phone_number = '01012345678',
+            auth_number  = 1234
+        )
+    
+    def tearDown(self):
+        PhoneCheck.objects.all().delete()
+    
+    @patch("users.utils.requests")
+    def test_post_success_SmsCheck(self, mocked_requests):
+        client = Client()
+
+        class MockedResponse:
+            def json(self):
+                return {
+                    "content" : "[야,여기어때] 인증 번호 [1234]를 입력해주세요."
+                }
+        
+        mocked_requests.post = MagicMock(return_value = MockedResponse())
+
+        user = {
+            'phone_number' : '01012345678'
+        }
+
+        response = client.post('/users/sms-check', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'MESSAGE':'SUCCESS'})
+    
+    def test_post_INVALID_PHONE_NUMBER_SmsCheck(self):
+        client = Client()
+
+        user = {
+            'phone_number' : '010-1234-5678'
+        }
+
+        response = client.post('/users/sms-check', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'MESSAGE':'INVALID_PHONE_NUMBER'})
+    
+    def test_post_KEY_ERROR_SmsCheck(self):
+        client = Client()
+
+        user = {
+
+        }
+
+        response = client.post('/users/sms-check', json.dumps(user), content_type='application/json')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'MESSAGE':'KEY_ERROR'})
+    
+    def test_post_JSONDecodeError_SmsCheck(self):
+        client = Client()
+
+        user = {
+            'phone_number' : '01012345678'
+        }
+
+        response = client.post('/users/sms-check', user)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'MESSAGE':'JSON_DECODE_ERROR'})
+    
+    def test_get_success_SmsCheck(self):
+        client = Client()
+
+        response = client.get('/users/sms-check?phone_number=01012345678&auth_number=1234')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'MESSAGE':'SUCCESS'})
+
+    def test_get_INVALID_AUTH_NUMBER_SmsCheck(self):
+        client = Client()
+
+        response = client.get('/users/sms-check?phone_number=01012345678&auth_number=4321')
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'MESSAGE':'INVALID_AUTH_NUMBER'})
