@@ -1,7 +1,7 @@
 from django.db import models
 
 class Category(models.Model):
-    location        = models.ManyToManyField('Location', through = 'CategoryLocation'),
+    location        = models.ManyToManyField('Location', through = 'CategoryLocation')
     name            = models.CharField(max_length = 45)
     thumbnail_image = models.URLField(max_length = 2000)
 
