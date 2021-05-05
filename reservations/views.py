@@ -1,6 +1,5 @@
 import json
 import datetime
-
 from django.http            import JsonResponse
 from django.core.exceptions import ValidationError,ObjectDoesNotExist
 from django.views           import View
@@ -90,3 +89,42 @@ class ReservationView(View):
         }for reservation in reservations]
 
         return JsonResponse({'RESULTS': result},status=200)
+
+    @LoginDecorator
+    def patch(self,request):
+        try:
+            data = json.loads(request.body)
+
+            CANCEL = 3
+
+            reservation_id = data['id']
+            check_in       = data['check_in']
+            check_out      = data['check_out']
+            room           = Room.objects.get(id=data['room'])
+
+            status = Status.objects.get(id=CANCEL)
+            Reservation.objects.filter(id=reservation_id).update(status=status)
+
+            check_in_date = datetime.datetime.strptime(check_in, '%Y-%m-%d')
+            check_out_date = datetime.datetime.strptime(check_out, '%Y-%m-%d')
+            days = (check_out_date - check_in_date).days
+
+            for cancel_day in range(days):
+                reservation_remain = ReservationCheck.objects.get(room=room, date=check_in_date)
+                if reservation_remain.remain == reservation_remain.quantity:
+                    return JsonResponse({"MESSAGE": "INVALID_REMAIN"}, status=400)
+                else:
+                    reservation_remain.remain += 1
+                    reservation_remain.save()
+                    check_in_date = check_in_date + datetime.timedelta(days=1)
+
+            return JsonResponse({"MESSAGE": "SUCCESS"}, status=200)
+
+        except KeyError:
+            return JsonResponse({"MESSAGE": "KEY_ERROR"}, status=400)
+
+        except ValueError:
+            return JsonResponse({"MESSAGE": "VALUE_ERROR"}, status=400)
+
+        except Room.DoesNotExist:
+            return JsonResponse({"MESSAGE":"NO_ROOM"},status=404)
