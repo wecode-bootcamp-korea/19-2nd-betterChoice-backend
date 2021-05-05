@@ -17,6 +17,10 @@ class ReservationTestCase(TestCase):
             status="예약완료",
             id=1,
         )
+        Status.objects.create(
+            status = "예약취소",
+            id =3,
+        )
         Location.objects.create(
             name='강남',
             id=1,
@@ -73,7 +77,6 @@ class ReservationTestCase(TestCase):
             remain=10,
             room=Room.objects.get(id=1),
             id=1,
-
         )
 
     def tearDown(self):
@@ -272,3 +275,145 @@ class ReservationTestCase(TestCase):
                  }
             )
         self.assertEqual(response.status_code, 200)
+
+    def test_cancel_reservation_test_success(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token}
+
+        reservation = {
+            "name": "test2",
+            "phone_number": "01023452345",
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "hotel": 1,
+            "room": 1,
+            "user": 1,
+            "status": 1,
+        }
+        response = client.post('/reservations', json.dumps(reservation), **headers, content_type='application/json')
+
+        cancel = {
+            "id": 1,
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "room": 1,
+        }
+        response = client.patch('/reservations', json.dumps(cancel), **headers, content_type='application/json')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(),
+                         {
+                             "MESSAGE": "SUCCESS"
+                         }
+                         )
+
+    def test_cancel_reservation_test_invalid_remain(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token}
+
+        cancel = {
+            "id": 1,
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "room": 1,
+        }
+
+        response = client.patch('/reservations', json.dumps(cancel), **headers, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+                         {
+                             "MESSAGE": "INVALID_REMAIN"
+                         }
+                         )
+
+    def test_cancel_reservation_test_key_error(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token}
+
+        reservation = {
+            "name": "test2",
+            "phone_number": "01023452345",
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "hotel": 1,
+            "room": 1,
+            "user": 1,
+            "status": 1,
+        }
+        response = client.post('/reservations', json.dumps(reservation), **headers, content_type='application/json')
+
+        cancel = {
+            "id": 1,
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "roomss": 1,
+        }
+
+        response = client.patch('/reservations', json.dumps(cancel), **headers, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+                         {
+                             "MESSAGE": "KEY_ERROR"
+                         }
+                         )
+
+    def test_cancel_reservation_test_value_error(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token}
+
+        reservation = {
+            "name": "test2",
+            "phone_number": "01023452345",
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "hotel": 1,
+            "room": 1,
+            "user": 1,
+            "status": 1,
+        }
+        response = client.post('/reservations', json.dumps(reservation), **headers, content_type='application/json')
+
+        cancel = {
+            "id": 1,
+            "check_in": "2021-05-07",
+            "check_out": "",
+            "room": 1,
+        }
+
+        response = client.patch('/reservations', json.dumps(cancel), **headers, content_type='application/json')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(),
+                         {
+                             "MESSAGE": "VALUE_ERROR"
+                         }
+                         )
+
+    def test_cancel_reservation_test_no_room(self):
+        client = Client()
+        headers = {'HTTP_Authorization': self.token}
+
+        reservation = {
+            "name": "test2",
+            "phone_number": "01023452345",
+            "check_in": "2021-05-07",
+            "check_out": "2021-05-08",
+            "hotel": 1,
+            "room": 1,
+            "user": 1,
+            "status": 1,
+        }
+        response = client.post('/reservations', json.dumps(reservation), **headers, content_type='application/json')
+
+        cancel = {
+            "id": 1,
+            "check_in": "2021-05-07",
+            "check_out": "",
+            "room": 2,
+        }
+
+        response = client.patch('/reservations', json.dumps(cancel), **headers, content_type='application/json')
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.json(),
+                         {
+                             "MESSAGE":"NO_ROOM"
+                         }
+                         )
