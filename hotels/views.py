@@ -118,6 +118,7 @@ class HotelDetailView(View):
                     ).first()
 
             results = {
+                'id'                    : hotel.id,
                 'hotel_name'            : hotel.name,
                 'star'                  : hotel.star,
                 'address'               : hotel.address,
@@ -127,6 +128,7 @@ class HotelDetailView(View):
                 'hotel_image'           : [image.image_url for image in hotel.hotelimage_set.all()],
                 'hotel_review_rate'     : float(hotel.review_set.all().aggregate(Avg('rate'))['rate__avg']) if hotel.review_set.all() else None,
                 'room_type'             : [{
+                    'id'             : room.id,
                     'image'          : room.image_url,
                     'room_name'      : room.name,
                     'original_price' : int(room.original_price),
