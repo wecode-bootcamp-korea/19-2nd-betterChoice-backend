@@ -9,7 +9,6 @@ from django.db              import transaction
 from users.utils               import LoginDecorator
 from reservations.models       import Reservation,Status
 from hotels.models             import Room,ReservationCheck,Hotel
-from users.models              import User
 
 class ReservationView(View):
     @LoginDecorator
@@ -25,7 +24,6 @@ class ReservationView(View):
             check_in     = data['check_in']
             check_out    = data['check_out']
             status       = Status.objects.get(id=RESERVED)
-            user         = User.objects.get(id=data['user'])
             hotel        = Hotel.objects.get(id=data['hotel'])
             room         = Room.objects.get(id=data['room'])
 
