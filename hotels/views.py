@@ -97,6 +97,8 @@ class HotelView(View):
             return JsonResponse({'MESSAGE':'SUCCESS', 'results':results}, status = 200)
         except KeyError:
             return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
+        except ValueError:
+            return JsonResponse({'MESSAGE':'VALUE_ERROR'}, status=400)
 
 class HotelDetailView(View):
     def get(self, request, hotel_id):
