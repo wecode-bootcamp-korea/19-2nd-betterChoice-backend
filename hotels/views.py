@@ -2,9 +2,8 @@ import json
 
 from django.http            import JsonResponse
 from django.views           import View
-from json.decoder           import JSONDecodeError
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models       import Q, Avg, Min
+from django.core.exceptions import ValidationError
 
 from hotels.models import Category, Hotel
 
@@ -52,7 +51,7 @@ class HotelView(View):
 
             if star:
                 hotel_filter.add((
-                    Q(star = star)
+                    Q(star__gte = star)
                     ), Q.AND)
                 if (int(star) > 5 or int(star) < 1):
                     return JsonResponse({'MESSAGE':'INVALID_STAR'}, status=400)
@@ -64,6 +63,7 @@ class HotelView(View):
                     ), Q.AND)
                 if check_in >= check_out:
                     return JsonResponse({'MESSAGE':'INVALID_DATE'}, status=400)
+            
             hotel_lists = Hotel.objects.filter(hotel_filter).distinct()
             
             sort_lists = {
@@ -136,3 +136,5 @@ class HotelDetailView(View):
             return JsonResponse({'MESSAGE':'SUCCESS', 'results':results}, status=200)
         except ValueError:
             return JsonResponse({'MESSAGE':'VALUE_ERROR'}, status=400)
+        except ValidationError:
+            return JsonResponse({'MESSAGE':'VALIDATION_ERROR'}, status=400)
