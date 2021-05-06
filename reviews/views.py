@@ -15,9 +15,8 @@ class ReviewView(View):
     @LoginDecorator
     def post(self, request, hotel_id):
         try:
-            data        = json.loads(request.POST['json'])
-            content     = data['content']
-            rate        = data['rate']
+            content     = request.POST['content']
+            rate        = request.POST['rate']
             files       = request.FILES.getlist('files', None)
             s3_client   = my_settings.S3_CLIENT
             user        = request.user
