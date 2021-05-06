@@ -91,8 +91,8 @@ class ReservationTestCase(TestCase):
             "phone_number" : "01023452345",
             "check_in" : "2021-05-07",
             "check_out" : "2021-05-08",
-            "hotel" : 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -114,8 +114,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "33",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
         }
 
@@ -135,8 +135,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
         }
 
@@ -157,8 +157,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 3,
-            "room": 1,
+            "hotel" : "test hotelsss",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -180,8 +180,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 3,
+            "hotel": "test hotel",
+            "room": "디럭스룸루루루룸",
             "user": 1,
             "status": 1,
         }
@@ -202,8 +202,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -227,8 +227,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -250,8 +250,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -285,8 +285,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel": "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -334,8 +334,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel": "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -365,8 +365,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }
@@ -396,8 +396,8 @@ class ReservationTestCase(TestCase):
             "phone_number": "01023452345",
             "check_in": "2021-05-07",
             "check_out": "2021-05-08",
-            "hotel": 1,
-            "room": 1,
+            "hotel" : "test hotel",
+            "room": "디럭스룸",
             "user": 1,
             "status": 1,
         }

@@ -23,8 +23,8 @@ class ReservationView(View):
             check_in     = data['check_in']
             check_out    = data['check_out']
             status       = Status.objects.get(id=RESERVED)
-            hotel        = Hotel.objects.get(id=data['hotel'])
-            room         = Room.objects.get(id=data['room'])
+            hotel        = Hotel.objects.get(name=data['hotel'])
+            room         = Room.objects.get(name=data['room'], hotel__name=data['hotel'])
 
             if not name or not phone_number:
                 return JsonResponse({'MESSAGE':'NO_INFORMATION'},status=404)
@@ -72,7 +72,7 @@ class ReservationView(View):
 
     @LoginDecorator
     def get(self,request):
-        user_id = request.user
+        user_id      = request.user
         reservations = Reservation.objects.filter(user=user_id)
 
         result = [{
