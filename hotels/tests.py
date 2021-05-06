@@ -180,6 +180,11 @@ class HotelTest(TestCase):
         response = client.get('/hotels')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {'MESSAGE':'KEY_ERROR'})
+    
+    def test_get_hotel_value_error(self):
+        response = client.get('/hotels?star="hello"&sort_type=1')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'MESSAGE':'VALUE_ERROR'})
 
 class HotelDetailTest(TestCase):
     def setUp(self):
