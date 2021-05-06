@@ -6,7 +6,7 @@ from users.models       import User
 from reservations.models import Reservation, Status
 from reviews.models      import Review
 from hotels.models      import (
-    Category, Location, CategoryLocation, Hotel, Room, ReservationCheck
+    Category, HotelImage, Location, CategoryLocation, Hotel, Room, ReservationCheck
 )
 
 client = Client()
@@ -211,6 +211,11 @@ class HotelDetailTest(TestCase):
                 location        = Location.objects.get(id=1)
                 )
 
+        HotelImage.objects.create(
+                image_url = 'test_url',
+                hotel     = Hotel.objects.get(id=1)
+                )
+
         Room.objects.create(
                 name           = '방이름',
                 image_url      = 'test_url',
@@ -268,6 +273,7 @@ class HotelDetailTest(TestCase):
         Location.objects.all().delete(),
         CategoryLocation.objects.all().delete(),
         Hotel.objects.all().delete(),
+        HotelImage.objects.all().delete(),
         Room.objects.all().delete,
         ReservationCheck.objects.all().delete(),
         User.objects.all().delete(),
@@ -286,7 +292,7 @@ class HotelDetailTest(TestCase):
                 'longitude'             : '111.11111111111111111111',
                 'latitude'              : '222.22222222222222222222',
                 'hotel_thumbnail_image' : 'test_url',
-                'hotel_image'           : [],
+                'hotel_image'           : ['test_url'],
                 'hotel_review_rate'     : 10,
                 'room_type'             : [
                     {
@@ -310,3 +316,8 @@ class HotelDetailTest(TestCase):
         response = client.get('/hotels/1?check_in=2021-05-07&check_outttt=2021-05-08')
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(), {'MESSAGE':'VALUE_ERROR'})
+
+    def test_get_hoteldetail_validation_error(self):
+        response = client.get('/hotels/1?check_in=2021-05-07&check_out=2021-05-0')
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.json(), {'MESSAGE':'VALIDATION_ERROR'})
