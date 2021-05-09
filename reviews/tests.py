@@ -36,7 +36,6 @@ class ReviewTest(TestCase):
 
         self.token1 = jwt.encode({'id':1}, my_settings.SECRET['secret'], algorithm=my_settings.ALGORITHM)
 
-
         User.objects.create(
             id           = 2,
             email        = 'qwer2@gmail.com',
@@ -111,8 +110,7 @@ class ReviewTest(TestCase):
         client = Client()
 
         headers   = {'HTTP_Authorization' : self.token1}
-        body      = json.dumps({'content':'좋아요', 'rate':10.00})
-        file_dict = {'json':body}
+        file_dict = {'content':'좋아요', 'rate':10.00}
 
         response  = client.post('/reviews/hotel/1', file_dict, **headers)
 
@@ -129,8 +127,7 @@ class ReviewTest(TestCase):
         mock_file.name                 = 'test1.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':mock_file, 'json':body}
+        file_dict = {'files':mock_file, 'content':'좋아요~', 'rate':10.00}
 
         response  = client.post('/reviews/hotel/1', file_dict, **headers)
 
@@ -149,8 +146,7 @@ class ReviewTest(TestCase):
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':[mock_file1,mock_file2], 'json':body}
+        file_dict = {'files':[mock_file1,mock_file2], 'content':'좋아요~', 'rate':10.00}
 
         response  = client.post('/reviews/hotel/1', file_dict, **headers)
 
@@ -169,8 +165,7 @@ class ReviewTest(TestCase):
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':[mock_file1,mock_file2], 'json':body}
+        file_dict = {'files':[mock_file1,mock_file2], 'content':'좋아요~', 'rate':10.00}
 
         response  = client.post('/reviews/hotel/2', file_dict, **headers)
 
@@ -189,8 +184,7 @@ class ReviewTest(TestCase):
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':[mock_file1,mock_file2], 'json':body}
+        file_dict = {'files':[mock_file1,mock_file2], 'content':'좋아요~', 'rate':10.00}
 
         response  = client.post('/reviews/hotel/1', file_dict, **headers)
 
@@ -209,33 +203,12 @@ class ReviewTest(TestCase):
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~'})
-        file_dict = {'files':[mock_file1, mock_file2], 'json':body}
+        file_dict = {'files':[mock_file1,mock_file2], 'content':'좋아요~'}
 
         response  = client.post('/reviews/hotel/1', file_dict, **headers)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.json(),{'MESSAGE':'KEY_ERROR'})
-    
-    @patch("my_settings.S3_CLIENT")
-    def test_post_JSONDecodeError_ReviewView(self, mocked_s3client):
-        client  = Client()
-
-        headers = {'HTTP_Authorization' : self.token1}
-
-        mock_file1                     = MagicMock(spec=File)
-        mock_file2                     = MagicMock(spec=File)
-        mock_file1.name                = 'test1.jpg'
-        mock_file2.name                = 'test2.jpg'
-        mocked_s3client.upload_fileobj = MagicMock()
-
-        body      = {'content' : '좋아요~', 'rate' : 10.00}
-        file_dict = {'files':[mock_file1, mock_file2], 'json':body}
-
-        response  = client.post('/reviews/hotel/1', file_dict, **headers)
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(),{'MESSAGE':'JSON_DECODE_ERROR'})
     
     def test_get_success_ReviewView(self):
         client   = Client()
