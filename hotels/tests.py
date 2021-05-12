@@ -291,6 +291,7 @@ class HotelDetailTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json(), {'MESSAGE':'SUCCESS',
             'results': {
+                'id'                    : 1,
                 'hotel_name'            : '호텔이름',
                 'star'                  : 5,
                 'address'               : '주소',
