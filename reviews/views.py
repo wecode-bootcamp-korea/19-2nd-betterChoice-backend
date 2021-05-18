@@ -57,8 +57,6 @@ class ReviewView(View):
             
         except KeyError:
             return JsonResponse({'MESSAGE': 'KEY_ERROR'}, status=400)
-        except json.JSONDecodeError:
-            return JsonResponse({'MESSAGE': 'JSON_DECODE_ERROR'}, status=400)
     
     def get(self, request, hotel_id):
         hotel_exist = Hotel.objects.filter(id=hotel_id).exists()
