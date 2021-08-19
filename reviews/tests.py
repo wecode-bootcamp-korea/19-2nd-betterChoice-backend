@@ -3,14 +3,21 @@ import bcrypt
 import jwt
 import json
 
-from django.test         import TestCase, Client
-from unittest.mock       import patch, MagicMock
-from django.core.files   import File
+from django.test       import TestCase, Client, client
+from unittest.mock     import patch, MagicMock
+from django.core.files import File
 
 from users.models        import User
-from hotels.models       import Category, Location, Hotel, Room
 from reservations.models import Reservation, Status
 from reviews.models      import Review
+from hotels.models       import (
+    Category, 
+    Location, 
+    Hotel, 
+    Room
+)
+
+client = Client()
 
 class ReviewTest(TestCase):
     def setUp(self):
@@ -19,12 +26,10 @@ class ReviewTest(TestCase):
             id   = 1,
             name = '호텔'
         )
-
         Location.objects.create(
             id   = 1,
             name = '강남구'
         )
-
         User.objects.create(
             id           = 1,
             email        = 'qwer@gmail.com',
@@ -33,9 +38,7 @@ class ReviewTest(TestCase):
             phone_number = '01012345678',
             is_social    = 'False'
         )
-
-        self.token1 = jwt.encode({'id':1}, my_settings.SECRET['secret'], algorithm=my_settings.ALGORITHM)
-
+        self.token1 = jwt.encode({'id' : 1}, my_settings.SECRET['secret'], algorithm = my_settings.ALGORITHM)
 
         User.objects.create(
             id           = 2,
@@ -45,8 +48,7 @@ class ReviewTest(TestCase):
             phone_number = '01012345679',
             is_social    = 'False'
         )
-
-        self.token2 = jwt.encode({'id':2}, my_settings.SECRET['secret'], algorithm=my_settings.ALGORITHM)
+        self.token2 = jwt.encode({'id' : 2}, my_settings.SECRET['secret'], algorithm = my_settings.ALGORITHM)
 
         Hotel.objects.create(
             id              = 1,
@@ -58,9 +60,7 @@ class ReviewTest(TestCase):
             category_id     = 1,
             location_id     = 1,
             star            = 5
-
         )
-
         Room.objects.create(
             id             = 1,
             name           = '스위트룸',
@@ -70,12 +70,10 @@ class ReviewTest(TestCase):
             occupancy      = 3,
             hotel_id       = 1,
         )
-
         Status.objects.create(
             id     = 2,
             status = '숙박완료'
         )
-        
         Reservation.objects.create(
             id           = 1,
             name         = 'David',
@@ -87,7 +85,6 @@ class ReviewTest(TestCase):
             hotel_id     = 1,
             room_id      = 1,
         )
-        
         Review.objects.create(
             id             = 1,
             content        = '최고에요',
@@ -108,181 +105,143 @@ class ReviewTest(TestCase):
         Category.objects.all().delete()
     
     def test_post_upload_no_file_success_ReviewView(self):
-        client = Client()
-
         headers   = {'HTTP_Authorization' : self.token1}
-        body      = json.dumps({'content':'좋아요', 'rate':10.00})
-        file_dict = {'json':body}
+        
+        file_dict = {'content' : '좋아요', 'rate' : 10.00}
 
         response  = client.post('/reviews/hotel/1', file_dict, **headers)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(),{'MESSAGE':'SUCCESS'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'SUCCESS'})
 
     @patch("my_settings.S3_CLIENT")
     def test_post_upload_one_file_success_ReviewView(self, mocked_s3client):
-        client  = Client()
-
         headers = {'HTTP_Authorization' : self.token1}
 
-        mock_file                      = MagicMock(spec=File)
+        mock_file                      = MagicMock(spec = File)
         mock_file.name                 = 'test1.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':mock_file, 'json':body}
+        file_dict = {'files' : mock_file, 'content':'좋아요~', 'rate':10.00}
 
-        response  = client.post('/reviews/hotel/1', file_dict, **headers)
+        response = client.post('/reviews/hotel/1', file_dict, **headers)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(),{'MESSAGE':'SUCCESS'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'SUCCESS'})
     
     @patch("my_settings.S3_CLIENT")
     def test_post_upload_multiple_files_success_ReviewView(self, mocked_s3client):
-        client  = Client()
-
         headers = {'HTTP_Authorization' : self.token1}
 
-        mock_file1                     = MagicMock(spec=File)
-        mock_file2                     = MagicMock(spec=File)
+        mock_file1                     = MagicMock(spec = File)
+        mock_file2                     = MagicMock(spec = File)
         mock_file1.name                = 'test1.jpg'
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':[mock_file1,mock_file2], 'json':body}
+        file_dict = {'files' : [mock_file1,mock_file2], 'content' : '좋아요~', 'rate' : 10.00}
 
-        response  = client.post('/reviews/hotel/1', file_dict, **headers)
+        response = client.post('/reviews/hotel/1', file_dict, **headers)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(),{'MESSAGE':'SUCCESS'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'SUCCESS'})
 
     @patch("my_settings.S3_CLIENT")
     def test_post_HOTEL_DOES_NOT_EXIST_ReviewView(self, mocked_s3client):
-        client  = Client()
-
         headers = {'HTTP_Authorization' : self.token1}
 
-        mock_file1                     = MagicMock(spec=File)
-        mock_file2                     = MagicMock(spec=File)
+        mock_file1                     = MagicMock(spec = File)
+        mock_file2                     = MagicMock(spec = File)
         mock_file1.name                = 'test1.jpg'
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':[mock_file1,mock_file2], 'json':body}
+        file_dict = {'files' : [mock_file1,mock_file2], 'content' : '좋아요~', 'rate' : 10.00}
 
-        response  = client.post('/reviews/hotel/2', file_dict, **headers)
+        response = client.post('/reviews/hotel/2', file_dict, **headers)
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json(),{'MESSAGE':'HOTEL_DOES_NOT_EXIST'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'HOTEL_DOES_NOT_EXIST'})
     
     @patch("my_settings.S3_CLIENT")
     def test_post_UNAUTHORIZED_USER_ReviewView(self, mocked_s3client):
-        client  = Client()
-
         headers = {'HTTP_Authorization' : self.token2}
 
-        mock_file1                     = MagicMock(spec=File)
-        mock_file2                     = MagicMock(spec=File)
+        mock_file1                     = MagicMock(spec = File)
+        mock_file2                     = MagicMock(spec = File)
         mock_file1.name                = 'test1.jpg'
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~','rate' : 10.00})
-        file_dict = {'files':[mock_file1,mock_file2], 'json':body}
+        file_dict = {'files':[mock_file1,mock_file2], 'content' : '좋아요~', 'rate' : 10.00}
 
-        response  = client.post('/reviews/hotel/1', file_dict, **headers)
+        response = client.post('/reviews/hotel/1', file_dict, **headers)
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json(),{'MESSAGE':'UNAUTHORIZED_USER'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'UNAUTHORIZED_USER'})
     
     @patch("my_settings.S3_CLIENT")
     def test_post_KEY_ERROR_ReviewView(self, mocked_s3client):
-        client  = Client()
-
         headers = {'HTTP_Authorization' : self.token1}
 
-        mock_file1                     = MagicMock(spec=File)
-        mock_file2                     = MagicMock(spec=File)
+        mock_file1                     = MagicMock(spec = File)
+        mock_file2                     = MagicMock(spec = File)
         mock_file1.name                = 'test1.jpg'
         mock_file2.name                = 'test2.jpg'
         mocked_s3client.upload_fileobj = MagicMock()
 
-        body      = json.dumps({'content' : '좋아요~'})
-        file_dict = {'files':[mock_file1, mock_file2], 'json':body}
+        file_dict = {'files' : [mock_file1,mock_file2], 'content' : '좋아요~'}
 
-        response  = client.post('/reviews/hotel/1', file_dict, **headers)
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(),{'MESSAGE':'KEY_ERROR'})
-    
-    @patch("my_settings.S3_CLIENT")
-    def test_post_JSONDecodeError_ReviewView(self, mocked_s3client):
-        client  = Client()
-
-        headers = {'HTTP_Authorization' : self.token1}
-
-        mock_file1                     = MagicMock(spec=File)
-        mock_file2                     = MagicMock(spec=File)
-        mock_file1.name                = 'test1.jpg'
-        mock_file2.name                = 'test2.jpg'
-        mocked_s3client.upload_fileobj = MagicMock()
-
-        body      = {'content' : '좋아요~', 'rate' : 10.00}
-        file_dict = {'files':[mock_file1, mock_file2], 'json':body}
-
-        response  = client.post('/reviews/hotel/1', file_dict, **headers)
+        response = client.post('/reviews/hotel/1', file_dict, **headers)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(),{'MESSAGE':'JSON_DECODE_ERROR'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'KEY_ERROR'})
     
     def test_get_success_ReviewView(self):
-        client   = Client()
-
         response = client.get('/reviews/hotel/1')
-        review   = Review.objects.get(pk=1)
+        review   = Review.objects.get(pk = 1)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(),{'RESULTS':[{
-            'content': '최고에요',
-            'rate': '10.00',
-            'rate_comment': '여기만한 곳은 어디에도 없을 거예요.',
-            'nickname': 'zzang',
-            'created_at': review.created_at.strftime('%Y-%m-%d %H:%M:%S'),
-            'image_url': []}]})
+        self.assertEqual(response.json(), {
+            'RESULTS' : [
+                {
+                    'content'      : '최고에요',
+                    'rate'         : '10.00',
+                    'rate_comment' : '여기만한 곳은 어디에도 없을 거예요.',
+                    'nickname'     : 'zzang',
+                    'created_at'   : review.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'image_url'    : []
+                }
+            ]
+        }
+    )
     
     def test_get_HOTEL_DOES_NOT_EXIST_ReviewView(self):
-        client   = Client()
-
         response = client.get('/reviews/hotel/2')
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json(),{'MESSAGE':'HOTEL_DOES_NOT_EXIST'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'HOTEL_DOES_NOT_EXIST'})
     
     def test_delete_success_ReviewView(self):
-        client   = Client()
-
-        headers  = {'HTTP_Authorization' : self.token1}
+        headers = {'HTTP_Authorization' : self.token1}
+        
         response = client.delete('/reviews/1', **headers)
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json(),{'MESSAGE':'SUCCESS'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'SUCCESS'})
     
     def test_delete_REVIEW_DOES_NOT_EXIST_ReviewView(self):
-        client   = Client()
+        headers = {'HTTP_Authorization' : self.token1}
 
-        headers  = {'HTTP_Authorization' : self.token1}
         response = client.delete('/reviews/2', **headers)
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.json(),{'MESSAGE':'REVIEW_DOES_NOT_EXIST'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'REVIEW_DOES_NOT_EXIST'})
 
     def test_delete_UNAUTHORIZED_USER_ReviewView(self):
-        client   = Client()
+        headers = {'HTTP_Authorization' : self.token2}
 
-        headers  = {'HTTP_Authorization' : self.token2}
         response = client.delete('/reviews/1', **headers)
 
         self.assertEqual(response.status_code, 401)
-        self.assertEqual(response.json(),{'MESSAGE':'UNAUTHORIZED_USER'})
+        self.assertEqual(response.json(), {'MESSAGE' : 'UNAUTHORIZED_USER'})

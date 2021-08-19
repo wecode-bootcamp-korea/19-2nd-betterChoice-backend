@@ -1,13 +1,14 @@
 import json
 import datetime
+
 from django.http            import JsonResponse
-from django.core.exceptions import ValidationError,ObjectDoesNotExist
+from django.core.exceptions import ValidationError
 from django.views           import View
 from django.db              import transaction
 
 from users.utils               import LoginDecorator
-from reservations.models       import Reservation,Status
-from hotels.models             import Room,ReservationCheck,Hotel
+from reservations.models       import Reservation, Status
+from hotels.models             import Room, ReservationCheck, Hotel
 
 class ReservationView(View):
     @LoginDecorator
@@ -27,7 +28,7 @@ class ReservationView(View):
             room         = Room.objects.get(id=data['room'])
 
             if not name or not phone_number:
-                return JsonResponse({'MESSAGE':'NO_INFORMATION'},status=404)
+                return JsonResponse({'MESSAGE':'INVALID_INFORMATION'}, status=404)
 
             with transaction.atomic():
                 Reservation.objects.create (
@@ -41,16 +42,16 @@ class ReservationView(View):
                     room         = room,
                 )
 
-            check_in_date = datetime.datetime.strptime(check_in, '%Y-%m-%d')
+            check_in_date  = datetime.datetime.strptime(check_in, '%Y-%m-%d')
             check_out_date = datetime.datetime.strptime(check_out, '%Y-%m-%d')
-            days = (check_out_date - check_in_date).days
+            days           = (check_out_date - check_in_date).days
 
             REMAIN = 0
 
             for use_day in range(days):
                 reservation_remain = ReservationCheck.objects.get(room=room, date=check_in_date)
                 if reservation_remain.remain == REMAIN:
-                    return JsonResponse({"MESSAGE": "NO_REMAIN_ROOM"},status=404)
+                    return JsonResponse({"MESSAGE": "INVALID_REMAIN"},status=404)
                 else:
                     reservation_remain.remain -= 1
                     reservation_remain.save()
@@ -59,20 +60,20 @@ class ReservationView(View):
             return JsonResponse({'MESSAGE':'SUCCESS'}, status=200)
 
         except KeyError:
-            return JsonResponse({'MESSAGE':'KEY_ERROR'},status=400)
+            return JsonResponse({'MESSAGE':'KEY_ERROR'}, status=400)
 
         except ValidationError:
             return JsonResponse({'MESSAGE':'VALIDATION_ERROR'}, status=404)
 
         except Hotel.DoesNotExist:
-            return JsonResponse({'MESSAGE':'NO_HOTEL'}, status=404)
+            return JsonResponse({'MESSAGE':'INVALID_HOTEL'}, status=404)
 
         except Room.DoesNotExist:
-            return JsonResponse({'MESSAGE':'NO_ROOM'}, status=404)
+            return JsonResponse({'MESSAGE':'INVALID_ROOM'}, status=404)
 
     @LoginDecorator
     def get(self,request):
-        user_id = request.user
+        user_id      = request.user
         reservations = Reservation.objects.filter(user=user_id)
 
         result = [{
@@ -84,7 +85,7 @@ class ReservationView(View):
                 'hotel'        : reservation.hotel.name,
                 'image_url'    : reservation.room.image_url,
                 'price'        : int((reservation.check_out - reservation.check_in).days * (reservation.room.original_price * reservation.room.discount_rate)),
-        }for reservation in reservations]
+            } for reservation in reservations ]
 
         return JsonResponse({'RESULTS': result},status=200)
 
@@ -103,9 +104,9 @@ class ReservationView(View):
             status = Status.objects.get(id=CANCEL)
             Reservation.objects.filter(id=reservation_id).update(status=status)
 
-            check_in_date = datetime.datetime.strptime(check_in, '%Y-%m-%d')
+            check_in_date  = datetime.datetime.strptime(check_in, '%Y-%m-%d')
             check_out_date = datetime.datetime.strptime(check_out, '%Y-%m-%d')
-            days = (check_out_date - check_in_date).days
+            days           = (check_out_date - check_in_date).days
 
             for cancel_day in range(days):
                 reservation_remain = ReservationCheck.objects.get(room=room, date=check_in_date)
@@ -116,13 +117,13 @@ class ReservationView(View):
                     reservation_remain.save()
                     check_in_date = check_in_date + datetime.timedelta(days=1)
 
-            return JsonResponse({"MESSAGE": "SUCCESS"}, status=200)
+            return JsonResponse({"MESSAGE":"SUCCESS"}, status=200)
 
         except KeyError:
-            return JsonResponse({"MESSAGE": "KEY_ERROR"}, status=400)
+            return JsonResponse({"MESSAGE":"KEY_ERROR"}, status=400)
 
         except ValueError:
-            return JsonResponse({"MESSAGE": "VALUE_ERROR"}, status=400)
+            return JsonResponse({"MESSAGE":"VALUE_ERROR"}, status=400)
 
         except Room.DoesNotExist:
-            return JsonResponse({"MESSAGE":"NO_ROOM"},status=404)
+            return JsonResponse({"MESSAGE":"INVALID_ROOM"},status=404)

@@ -2,12 +2,11 @@ import json
 import boto3
 import my_settings
 
-from django.views        import View
-from django.http         import JsonResponse
+from django.views import View
+from django.http  import JsonResponse
 
-from reviews.models      import Review, ReviewComment, ReviewImage
-from hotels.models       import Hotel, Room
-from users.models        import User
+from reviews.models      import Review, ReviewImage
+from hotels.models       import Hotel
 from reservations.models import Reservation
 from users.utils         import LoginDecorator
 
@@ -51,12 +50,13 @@ class ReviewView(View):
                 ReviewImage(
                 image_url = f'https://{my_settings.AWS_S3_BUCKET_NAME}.s3.ap-northeast-2.amazonaws.com/{file.name}',
                 review    = review
-                ) for file in files])
+                ) for file in files ])
             
             return JsonResponse({'MESSAGE':'SUCCESS'}, status=200)
             
         except KeyError:
             return JsonResponse({'MESSAGE': 'KEY_ERROR'}, status=400)
+
         except json.JSONDecodeError:
             return JsonResponse({'MESSAGE': 'JSON_DECODE_ERROR'}, status=400)
     
@@ -75,7 +75,7 @@ class ReviewView(View):
             'nickname'     : review.user.nickname,
             'created_at'   : review.created_at.strftime('%Y-%m-%d %H:%M:%S'),
             'image_url'    : [review_image.image_url for review_image in review.reviewimage_set.all()]
-        } for review in reviews]
+        } for review in reviews ]
 
         return JsonResponse({'RESULTS':results}, status=200)
     
@@ -93,4 +93,5 @@ class ReviewView(View):
             return JsonResponse({'MESSAGE':'UNAUTHORIZED_USER'}, status=401)
             
         Review.objects.get(user=user, id=review_id).delete()
+        
         return JsonResponse({'MESSAGE':'SUCCESS'}, status=200)
